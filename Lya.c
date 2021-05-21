@@ -35,7 +35,7 @@ int get_position(double *y1H, double *y1He, double *dy1H, double *Te, double y1H
 
 	for(i = 0; i < NGRID; i++){
 		q[i] = get_cooling_rate(Te[i], y1H[i], y1He[i]);
-		L_emissivity[i] = dy1H[i] * y1H1 * y1H1 * q[i];
+		L_emissivity[i] = 0.6901*dy1H[i] * y1H1 * y1H1 * q[i];
 		T_emissivity += L_emissivity[i];
 	}
 
