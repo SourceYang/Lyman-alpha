@@ -137,3 +137,28 @@ double get_cooling_rate(double Te, double y1H, double y1He) {
 
   return( (3./4.*q12 + 8./9.*q13)*y1H*(1.-y1H+ABUND_HE*(1.-y1He)) );
 }
+
+double get_Lya_rate(double Te) {
+  
+  double gammaL, q12p, q13s, q13d;
+  
+  /* 1s->2p*/
+  gammaL = 3.35e-1 + 1.45e-5*Te +1.39e-10*Te*Te - 5.66e-15*Te*Te*Te;
+  if (Te>2.5e4)
+    gammaL = 3.28e-1 + 1.43e-5*Te -6.55e-12*Te*Te - 2.69e-18*Te*Te*Te;
+  q12p = 8.6287e-6/2./sqrt(Te)*gammaL*exp(-0.75*RYD_K/Te); 
+  
+  /* 1s-> 3s */
+  gammaL = 8.27e-2 + 4.18e-6*Te -4.18e-10*Te*Te +9.37e-15*Te*Te*Te;
+  if (Te>2.5e4)
+    gammaL= 7.31e-2 - 1.84e-7*Te +1.31e-12*Te*Te -1.62e-18*Te*Te*Te;
+  q13s = 8.6287e-6/2./sqrt(Te)*gammaL*exp(-0.8888888889*RYD_K/Te);
+  
+  /* 1s->3d*/
+  gammaL = 1.21e-2 + 1.03e-5*Te -4.31e-10*Te*Te + 7.16e-15*Te*Te*Te;
+  if (Te>2.5e4)
+    gammaL = 9.34e-2 + 1.03e-6*Te -3.68e-12*Te*Te +3.91e-18*Te*Te*Te;
+  q13d = 8.6287e-6/2./sqrt(Te)*gammaL*exp(-0.8888888889*RYD_K/Te);
+  
+  return(q12p + q13s + q13d); 
+}  
