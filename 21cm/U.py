@@ -26,9 +26,10 @@ k = 1.380649e-16 # Boltzmann constant, in [g cm^2 s^-2 K^-1]
 omega_b_0 = 0.0224 / h_0 / h_0  # current baryon abundance
 
 z = 8.11 # redshift, could be modified
+T_bb = 50000 # may be modified
 file_gamma_12 = r'Gamma12aveHII_z008.11_HIIfilter1_RHIImax50_200_300Mpc' # direction of gamma_12
-file_Ts = r'Ts_z008.11_L_X3.2e+40_alphaX1.0_TvirminX0.0e+00_zetaIon25.00_Pop2_200_300Mpc' # direction of Ts
 file_delta_m = r'updated_smoothed_deltax_z008.11_200_300Mpc' # direction of delta_m
+file_output = r'test.txt' # direction of output file
 
 
 # In[5]:
@@ -101,7 +102,6 @@ def sigma_avg(T_bb):
 # In[ ]:
 
 
-T_bb = 50000 # may be modified
 sigma_H_avg = sigma_avg(T_bb)
 
 
@@ -145,7 +145,7 @@ for i in range(len(gamma_12)):
     U_i = U(gamma_12[i], sigma_H_avg, n_H[i])
     U_front.append(U_i)
     
-f = open('test.txt', 'w')
+f = open(file_output, 'w')
 for i in range(len(U_front)):
     f_i = str(U_front[i])
     f.write(f_i+"\n")
