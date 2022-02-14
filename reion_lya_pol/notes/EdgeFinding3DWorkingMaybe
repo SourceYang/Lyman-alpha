@@ -1,0 +1,563 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 16 11:03:26 2021
+
+@author: Emily
+"""
+
+import py21cmfast as p21c
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
+
+
+initial_conditions = p21c.cache_tools.readbox(direc ="/Users/Emily/21cmFAST-cache", fname="InitialConditions_f69248eb7a369b72f91ec454f0b29d43_r54321.h5")
+perturbed_field = p21c.cache_tools.readbox(direc ="/Users/Emily/21cmFAST-cache", fname="PerturbedField_b3af255b41b4617019a4637c87ce22d2_r54321.h5")
+ionized_box = p21c.cache_tools.readbox(direc ="/Users/Emily/21cmFAST-cache", fname="IonizedBox_165367d07d17980e2c10fd22abfeb0be_r54321.h5")
+#ionized_box2 = p21c.cache_tools.readbox(direc ="/Users/Emily/21cmFAST-cache", fname="IonizedBox_a0644e4f3184ab0307ab63aaf05f9da4_r54321.h5")
+#pyIonizedCube2 = getattr(ionized_box,'Gamma12_box')
+p21c.plotting.coeval_sliceplot(ionized_box, "xH_box",slice_axis=2,slice_index=0);
+p21c.plotting.coeval_sliceplot(ionized_box, "xH_box",slice_axis=2,slice_index=1);
+p21c.plotting.coeval_sliceplot(ionized_box, "xH_box",slice_axis=2,slice_index=50);
+
+pyXh = getattr(ionized_box,'xH_box')
+box1 = pyXh
+
+pyXh2 = getattr(ionized_box,'Gamma12_box')
+gammabox = pyXh2
+
+
+zlists1 = []
+xlist1=[]
+ylist1=[]
+xylists1 = []
+deltax=[0,1,2,3,4]
+deltay=[0,1,-1,2,-2,3,-3,4,-4]
+
+
+
+def cont(box,x,y,z):
+    right=x+1
+    left=x-1
+    up=y+1
+    down=y-1
+    if x == 99:
+        right = 0
+    if x ==0:
+        left = 99
+    if y == 99:
+        up = 0
+    if y ==0:
+        down = 99
+    
+    fraca = box[right][y][z]
+    fracb = box[left][y][z]
+    fracc = box[x][up][z]
+    fracd = box[x][down][z]
+    if fraca<.5 or fracb<.5 or fracc<.5 or fracd<.5:
+        return True
+    else:
+        return False
+    
+    
+
+#p21c.plotting.coeval_sliceplot(ionized_box, "xH_box", cbar_label="xH_box",fig_kw=fig1, ax=ax1);
+
+# now move into the gaussian blurred section 
+#show the gaussian smoothed slice at z=0
+slc = np.take(box1, 0, axis=2)
+smoothed1 = gaussian_filter(slc.T,2.5, mode='wrap')
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1.imshow(smoothed1)
+plt.xlim((0,100))
+plt.ylim((0,100))
+plt.xlabel("x")
+plt.ylabel("y")
+plt.show()
+
+slc = np.take(box1, 1, axis=2)
+smoothed2 = gaussian_filter(slc.T,2.5, mode='wrap')
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1.imshow(smoothed2)
+plt.xlim((0,100))
+plt.ylim((0,100))
+plt.xlabel("x")
+plt.ylabel("y")
+plt.show()
+
+slc = np.take(box1, 50, axis=2)
+smoothed3 = gaussian_filter(slc.T,2.5, mode='wrap')
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax1.imshow(smoothed3)
+plt.xlim((0,100))
+plt.ylim((0,100))
+plt.xlabel("x")
+plt.ylabel("y")
+plt.show()
+
+
+#zlists.append(xylists)
+zlists2 = []
+xlist2=[]
+ylist2=[]
+xylists2 = []
+deltax=[0,1,2,3,4]
+deltay=[0,1,-1,2,-2,3,-3,4,-4]
+
+def contS(box,x,y):
+    right=x+1
+    left=x-1
+    up=y+1
+    down=y-1
+    if x == 99:
+        right = 0
+    if x ==0:
+        left = 99
+    if y == 99:
+        up = 0
+    if y ==0:
+        down = 99
+    if x == 100:
+        x=0
+        left=99
+        right = 1
+       
+    if y == 100:
+        y=0
+        down=99
+        up=1
+   
+    
+    fraca = box[right][y]
+    fracb = box[left][y]
+    fracc = box[x][up]
+    fracd = box[x][down]
+    if fraca<.5 or fracb<.5 or fracc<.5 or fracd<.5:
+        return True
+    else:
+        return False
+    
+    
+#slc = np.take(box1, 0, axis=2)
+#smoothed = gaussian_filter(slc.T,3, mode='wrap')  
+#smoothed=smoothed.T
+countedz= []
+pairslist =[]
+countz=0
+xylists3 =[]
+for z in range(0,100,1):
+    slc = np.take(box1, z, axis=2)
+    smoothed = gaussian_filter(slc.T,2.5, mode='wrap')  
+    smoothed=smoothed.T
+    countz=0
+    for y in range(0,100,1):
+        for x in range(0,100,1):
+             frac1 = smoothed[x][y]
+             check = 0
+             count=0
+             if frac1>0.5 and check<.5:
+                 proc = contS(smoothed,x,y)
+                 if proc==True:
+                     if (count<2):
+                 #"want to check surrounding cells in x,y \"\n",
+                         for a in range(0,2,1):
+                             deltaX = deltax[a]
+                             for b in range(0,3,1):
+                                 deltaY= deltay[b]
+                                 if deltaX+np.abs(deltaY)<5 and deltaX+np.abs(deltaY)>0 and x+deltaX<101 and y+deltaY<101:
+                                     xcheck=x+deltaX
+                                     ycheck = y+deltaY
+                                     if x+deltaX==100:
+                                         xcheck= 0
+                                     if y+deltaY==100:
+                                         ycheck= 0
+                                     frac2 = smoothed[xcheck][ycheck]
+                                     if frac2>.5:
+                                         ad = contS(smoothed,x+deltaX,y+deltaY)
+                                         if ad==True:
+                                         #"want to record to a list point 1 to point 2\"\n",
+                                             xylists2.append((x,y,z,x+deltaX,y+deltaY))
+                                             xylists3.append((x,y,z,x+deltaX,y+deltaY))
+                                             xlist2.append(x)
+                                             xlist2.append(x+deltaX)
+                                             xlist2.append(None)
+                                             ylist2.append(y)
+                                             ylist2.append(y+deltaY)
+                                             ylist2.append(None)
+                                             zlists2.append(z)
+                                             zlists2.append(z)
+                                             zlists2.append(None)
+                                             count +=1
+                                             countz+=1
+    countedz.append(countz)
+    pairslist.append(xylists2)
+    xylists2 =[]
+    
+    
+
+
+fig1 = plt.figure()
+ax1 = fig1.add_subplot(111)
+
+plt.plot(xlist2[0:3*countedz[0]],ylist2[0:3*countedz[0]])
+ax1.imshow(smoothed3)
+plt.plot(xlist2[(3*countedz[0]):(3*countedz[1])+(3*countedz[0])],ylist2[(3*countedz[0]):(3*countedz[1])+(3*countedz[0])])
+#plt.plot(xlist2[(3*(countedz[0]+countedz[1]+countedz[2]+countedz[3]+countedz[4])):(3*countedz[1]+3*(countedz[0]+countedz[2]+countedz[3]+countedz[4]+countedz[5]))],ylist2[(3*(countedz[0]+countedz[1]+countedz[2]+countedz[3]+countedz[4])):(3*countedz[1])+3*(countedz[0]+countedz[2]+countedz[3]+countedz[4]+countedz[5])])
+plt.plot(xlist2[(3*(np.sum(countedz[0:49]))):(3*np.sum(countedz[0:50]))],ylist2[(3*(np.sum(countedz[0:49]))):(3*np.sum(countedz[0:50]))])
+ax1.set_aspect('equal', adjustable='box')
+plt.xlabel("x")
+plt.xlim((0,99))
+plt.ylim((0,99))
+plt.grid()
+plt.ylabel("y")
+plt.show()
+"""
+fig = plt.figure()
+ax = fig.add_subplot(111)
+
+plt.plot(xlist2[0:3*countedz[0]],ylist2[0:3*countedz[0]])
+plt.plot(xlist2[3*countedz[0]:3*countedz[1]+(3*countedz[0])],ylist2[3*countedz[0]:3*countedz[1]+(3*countedz[0])])
+
+plt.plot(xlist2[(3*(np.sum(countedz[0:49]))):(3*np.sum(countedz[0:50]))],ylist2[(3*(np.sum(countedz[0:49]))):(3*np.sum(countedz[0:50]))])
+
+ax.set_aspect('equal', adjustable='box')
+plt.xlabel("x")
+plt.ylim((40,60))
+plt.xlim((60,80))
+plt.grid()
+plt.ylabel("y")
+plt.show()
+
+"""
+
+#p21c.plotting.coeval_sliceplot(ionized_box, "xH_box", cbar_label="xH_box",fig_kw=fig1, ax=ax1);
+def computeDistance(x,y,z,x2,y2,z2):
+    if z==99:
+        if z2==0:
+            z2=100
+    return np.sqrt((x-x2)**2+(y-y2)**2+(z-z2)**2)
+
+complist=[]
+lines =[]
+for t in range(0,3,1): #z index
+    linestemp=[]
+    for p in range(0,len(pairslist[t]),1):
+        x1=pairslist[t][p][0]
+        y1=pairslist[t][p][1]
+        z1=pairslist[t][p][2]
+        x2=pairslist[t][p][3]
+        y2=pairslist[t][p][4]
+        xtemp=0
+        ytemp=0
+        ztemp=0
+        zindex=t
+        comp=100000000.0
+        if zindex ==99:
+            zindex =-1
+        for p2 in range(0,len(pairslist[zindex+1]),1): #took care of zwrap but not 
+        #x and y- extend the grid a bit for these
+            x2=pairslist[zindex+1][p2][0]
+            y2=pairslist[zindex+1][p2][1]
+            z2=pairslist[zindex+1][p2][2]
+            temp=computeDistance(x1,y1,z1,x2,y2,z2)
+            if temp<8:
+                if temp<comp:
+                    comp=temp 
+                    xtemp=x2
+                    ytemp=y2
+                    ztemp=z2
+        complist.append(comp)
+        if comp<8 :
+            linestemp.append((x1,y1,z1,xtemp,ytemp,ztemp))
+        else:
+            linestemp.append((x1,y1,z1,x1,y1,z1))
+        if temp<=1:
+            p2=len(pairslist[zindex+1])
+    lines.append(linestemp)
+
+
+             
+#now have pairslist with line segment ends in z slices
+#also have lines with line segment ends with shortest line segment one z slice 
+#up. does this make shapes that plate the whole front? 
+#if so, jusy need to map basically complete smallest area segments 
+#can see what segment from lines has the same second end point of pairslist
+#see how to connect to lines upper endpoints via pairslist of next zslice
+
+#if at same point, form triangle, know area, can find angle pretty easily 
+#if paralellogram, can connect the upper left and lower right with segment
+#this would make 2 triangles- see triange explanation
+
+#if upper takes 2 or more segments to map, can do same scheme as parallelogram
+#take upper left and bottom right, connect, find triange, then eliminate that 
+#part of the stuff, can draw a line that connects to next upper left and 
+#bottom right, triange then is between these two extrapolated lines 
+#continue until one segment is left over. that is a triange, so things are
+#straighforward
+
+#need triange func that takes 3 points and returns angle and area 
+#still need to think about how to best store this info? 
+#maybe a list for each vertex? or maybe store a list for each triangle
+#could have a list of dictionary type things that stores 3 points, area, angle
+#look into dictionaries more 
+
+def frontTriangle(x1,y1,z1,x2,y2,z2,x3,y3,z3):
+    a= np.sqrt((x1-x2)**2+(y1-y2)**2+(z1-z2)**2)
+    b= np.sqrt((x3-x2)**2+(y3-y2)**2+(z3-z2)**2)
+    c= np.sqrt((x1-x3)**2+(y1-y3)**2+(z1-z3)**2)
+    s = (a+b+c)/2.0
+    area = np.sqrt(s*(s-a)*(s-b)*(s-c))
+
+    
+    leg1 = [x1-x2,y1-y2,z1-z2]
+    leg2 = [x2-x3,y2-y3,z2-z3]
+    nfull = np.cross(leg1,leg2)
+    nhat = nfull/np.sqrt(nfull[0]**2 + nfull[1]**2 +nfull[2]**2)
+    
+    center = ((x1+x2+x3)/3,(y1+y2+y3)/3,(z1+z2+z3)/3)
+
+    returned = np.array([area,center,(x1,y1,z1),(x2,y2,z2),(x3,y3,z3),nhat[0],nhat[1],nhat[2]])
+    return returned
+    
+
+
+
+def callsTriangle(zslice,pairslist, upleft, upright, bottomright, internalTriangleList,countCalls):
+    if countCalls>=10:
+        print("too many calls")
+        print(bottomright,bottomleft)
+    #print("im in")
+    if countCalls<10:
+        for ind in range(zslice+1,zslice+2,1):
+            if ind<99:  #is this doing the top right? 
+                for h in range(len(pairslist[ind])):
+                    #(x,y,z,x+deltaX,y+deltaY)
+                    if((pairslist[ind][h][0],pairslist[ind][h][1],pairslist[ind][h][2])==upleft):
+                        upmid = pairslist[ind][h][3],pairslist[ind][h][4],pairslist[ind][h][2]
+                        if upmid==upright:
+                            triangle1= frontTriangle(bottomright[0], bottomright[1], bottomright[2], upleft[0], upleft[1], upleft[2], upmid[0], upmid[1], upmid[2])
+                            triangle2= frontTriangle(bottomright[0], bottomright[1], bottomright[2], upright[0], upright[1], upright[2], upmid[0], upmid[1], upmid[2])
+                            internalTriangleList.append(triangle1)
+                            internalTriangleList.append(triangle2)
+                            #print("entered")
+                            #return internalTriangleList
+                            
+                        else:
+                            
+                            #print("entered")
+                            #return cont, ind,h, (1000000000,0,0,(0,0,0),(0,0,0),(0,0,0))
+                            
+                            triangle0 = frontTriangle(bottomright[0], bottomright[1], bottomright[2], upleft[0], upleft[1], upleft[2], upmid[0], upmid[1], upmid[2])
+                            internalTriangleList.append((triangle0))
+                            print(upmid)
+                            callsTriangle(zslice,pairslist,upmid,upright,bottomright,internalTriangleList,countCalls+1)
+                            #internalTriangleList.append(intermediate)
+                            #return internalTriangleList
+
+          
+            
+def flatTop2(zslice,pairslist, baseleft, baseright, internalTrianglesTop,w):
+    w+=1
+    #print(w)
+    for pa in range(len(pairslist[zslice])):
+        if((pairslist[zslice][pa][3],pairslist[zslice][pa][4],pairslist[zslice][pa][2])==baseleft):
+            up=pairslist[zslice][pa][0],pairslist[zslice][pa][1],pairslist[zslice][pa][2]
+            triangle0 = frontTriangle(baseleft[0],baseleft[1],baseleft[2],baseright[0],baseright[1],baseright[2],up[0],up[1],up[2])
+            if (triangle0[2][2]==zslice and triangle0[3][2]==zslice and triangle0[4][2]==zslice):
+                internalTrianglesTop.append(triangle0)
+                print(triangle0)
+                
+            if ((baseleft[0],baseleft[1],baseleft[2],baseright[0],baseright[1]) in pairslist[zslice]):
+                #print("found match1 " + str((baseleft[0],baseleft[1],baseright[0],baseright[1],up[0],up[1])))
+                #print("added" + str((up[0],up[1],baseleft[2],baseright[0],baseright[1])))
+                pairslist[zslice].remove((baseleft[0],baseleft[1],baseleft[2],baseright[0],baseright[1]))
+                #removes farthest left
+                #pairslist[zslice].append((up[0],up[1],baseright[2],baseright[0],baseright[1]))
+                pairslist[zslice].append((10000000,100000000,100000000,10000000,10000000))
+    
+            if ((up[0],up[1],up[2],baseleft[0],baseleft[1]) in pairslist[zslice]):
+                #print("found match2 " + str((up[0],up[1],baseleft[0],baseleft[1],baseright[0],baseright[1])))
+                pairslist[zslice].remove((up[0],up[1],up[2],baseleft[0],baseleft[1]))#removes line that connects to up 
+                pairslist[zslice].append((100000,100000,100000,100000,100000))
+            if ((baseleft[0],baseleft[1],up[2],up[0],up[1]) in pairslist[zslice]):
+                #print("found match2 round2 " + str((up[0],up[1],baseleft[0],baseleft[1],baseright[0],baseright[1])))
+                pairslist[zslice].remove((baseleft[0],baseleft[1],up[2],up[0],up[1]))#removes line that connects to up 
+                pairslist[zslice].append((100000,100000,100000,100000,100000))   
+            
+            #if ((up[0],up[1],up[2],baseright[0],baseright[1]) in pairslist[zslice]):
+            #    print("found match3 " + str((up[0],up[1],baseright[0],baseright[1],baseleft[0],baseleft[1])))
+            #    pairslist[zslice].remove((up[0],up[1],up[2],baseright[0],baseright[1]))#removes line that connects to up 
+            #    pairslist[zslice].append((100000,100000,100000,100000,100000))
+           
+            temp=up
+            flatTop2(zslice,pairslist,temp,baseright,internalTrianglesTop,w)
+            #internalTrianglesTop.append(intermediate)
+        #want to return internaltrianglestop when there are no lines left
+        elif((pairslist[zslice][pa][3],pairslist[zslice][pa][4],pairslist[zslice][pa][2])==baseright and (pairslist[zslice][pa][0],pairslist[zslice][pa][1],pairslist[zslice][pa][2]) != baseleft):
+           up=pairslist[zslice][pa][0],pairslist[zslice][pa][1],pairslist[zslice][pa][2]
+           triangle0 = frontTriangle(baseleft[0],baseleft[1],baseleft[2],baseright[0],baseright[1],baseright[2],up[0],up[1],up[2])
+           if (triangle0[2][2]==zslice and triangle0[3][2]==zslice and triangle0[4][2]==zslice):
+               internalTrianglesTop.append(triangle0)
+               print(triangle0)
+           if ((baseleft[0],baseleft[1],baseleft[2],baseright[0],baseright[1]) in pairslist[zslice]):
+               #print("found match4 " + str((baseleft[0],baseleft[1],baseright[0],baseright[1],up[0],up[1])))
+               pairslist[zslice].remove((baseleft[0],baseleft[1],baseleft[2],baseright[0],baseright[1]))
+               pairslist[zslice].append((1000000,10000000,1000000,1000000,1000000))#removes farthest left
+               #pairslist[zslice].append((baseleft[0],baseleft[1],baseleft[2],up[0],up[1]))
+           if((baseright[0],baseright[1],baseright[2],up[0],up[1]) in pairslist[zslice]):
+                #print("sub4" + str((baseright[0],baseright[1],baseright[2],up[0],up[1])))
+                pairslist[zslice].remove((baseright[0],baseright[1],baseright[2],up[0],up[1]))
+                pairslist[zslice].append((100000,100000,100000,100000,100000)) 
+           if((up[0],up[1],up[2],baseright[0],baseright[1]) in pairslist[zslice]):
+                #print("sub4 second" + str((baseright[0],baseright[1],baseright[2],up[0],up[1])))
+                pairslist[zslice].remove((up[0],up[1],up[2],baseright[0],baseright[1]))
+                pairslist[zslice].append((100000,100000,100000,100000,100000)) 
+                   
+           temp=up
+           flatTop2(zslice,pairslist,temp,baseleft,internalTrianglesTop,w)
+           #internalTrianglesTop.append(intermediate)
+           #return internalTrianglesTop
+        else:
+            if pa==(len(pairslist[zslice])-1):
+                #result = [i for n, i in enumerate(internalTrianglesTop) if i not in internalTrianglesTop[:n]]
+                print('result')
+                #return internalTrianglesTop
+            
+
+        
+            
+trianglelist=[]            
+          
+for i in range(0,2,1): #i indexes zslice
+    for j in range(0,len(pairslist[i]),1): #j loops over the pairs in zslice i
+        x1=pairslist[i][j][0]
+        y1=pairslist[i][j][1]
+        z1=pairslist[i][j][2]
+        x2=pairslist[i][j][3]
+        y2=pairslist[i][j][4]
+        bottomleft = (x1,y1,z1)
+        bottomright = (x2,y2,z1)
+        zindex = i
+        triangleadd =0
+        if zindex ==99:
+            zindex =-1
+        st =0 #condition to stop, will set to 1 if met
+        while st ==0:
+            for l in range(len(lines[i])):
+                if lines[i][l][0]==x1 and lines[i][l][1]==y1 and lines[i][l][2]==z1:
+                    up1 = (lines[i][l][3],lines[i][l][4],lines[i][l][5])
+                    cont1=0
+                    if up1 == (x1,y1,z1):
+                        print("here")
+                        print(x1,y1,z1)
+                        addingTop=[]
+                        internaltriangletop=[]
+                        w=0
+                        #addingTop = flatTop2(zindex, pairslist,(x1,y1,z1),(x2,y2,z1),internaltriangletop,w)
+                        flatTop2(zindex, pairslist,(x1,y1,z1),(x2,y2,z1),trianglelist,w)
+                        """
+                        if addingTop !=[] and addingTop is not None:
+                            for adt in range(len(addingTop)):
+                            #if temporarytriangles[tt]
+                                trianglelist.append(addingTop[adt]) 
+                                """
+                        #trianglelist.append(addingTop)
+                        #there is no upper triangle, should close out the top/bottom, but will get to later 
+                        st=1
+                        #find pairslist with leftmost of second set of points in
+                        #lines[l]
+                    else:
+                        for ll in range(0,len(lines[i]),1):
+                            if (lines[i][ll][0],lines[i][ll][1],lines[i][ll][2])==bottomright:
+                                up2 = (lines[i][ll][3],lines[i][ll][4],lines[i][ll][5])
+                                if up1==up2 or up2==bottomright:
+                                    #we made a triangle and life is easy!!
+                                    triangle= frontTriangle(x1, y1, z1, x2, y2, z1,up1[0],up1[1], up1[2])
+                                    
+                                    trianglelist.append((triangle))
+                                    triangleadd+=1
+                                    #print("trianlge 1" + str(triangle1count) + str(triangle))
+                                    st=1  
+                                else :
+                                    cont1+=1
+                                    triangle0=frontTriangle(x1,y1,z1,x2,y2,z2,up1[0],up1[1],up1[2])
+                                    trianglelist.append((triangle0))
+                                    midind = up1[2]
+                                    midh = ll
+                                    
+                                    temporarytriangles=[]
+                                    internaltriangle =[]
+                                #need to connect from pairslist with left up1 and right up
+                                    callsTriangle(midind,pairslist,up1,up2,bottomright, internaltriangle,0)
+                                    #print(type(temporarytriangles))
+                                    """
+                                    if temporarytriangles !=[] and temporarytriangles is not None:
+                                        for tt in range(temporarytriangles):
+                                        #if temporarytriangles[tt]
+                                            trianglelist.append(temporarytriangles[tt])   
+                                    st=1
+                                    """
+            st=1
+            
+            
+trianglesfinal = [ ele for ele in trianglelist if ele is not None ]
+tyTest=np.full((len(trianglesfinal)),False,dtype=bool)   
+tyTest = [True for ele in trianglesfinal if type(ele) is list]
+exists =  True in tyTest
+
+while exists == True:
+    for h in range(len(trianglesfinal)):
+        #while trianglesfinal[h] != []:
+        if type(trianglesfinal[h]) == list:
+            for f in range(len(trianglesfinal[h])-1,-1,-1):
+                trianglesfinal.append(trianglesfinal[h][f])
+                #trianglesfinal[h].remove(trianglesfinal[h][f])
+            trianglesfinal.pop(h)
+        if [] in trianglesfinal==True:
+            trianglesfinal.remove([])
+            print("removed")
+        tyTest=np.full((len(trianglesfinal)),False,dtype=bool)    
+        tyTest = [True for ele in trianglesfinal if type(ele) is list]
+        exists =  True in tyTest
+        print(h)
+        #trianglesfinal.remove([])
+            
+trianglesfinal = [ ele for ele in trianglesfinal if ele is not None ]      
+      
+gamma12pointfortriangle=np.zeros((len(trianglesfinal),4) )           
+for r in range(len(trianglesfinal)):
+    (cx,cy,cz) = trianglesfinal[r][1]
+    (nx,ny,nz) =  trianglesfinal[r][5],trianglesfinal[r][6],trianglesfinal[r][7]
+     
+    loc = np.rint([cx-nx,cy-ny,cz-nz])
+    print(loc)
+    print(r)
+    #lx,ly,lz = 
+    loc = [int(loc[0]),int(loc[1]),int(loc[2])]
+    print(loc)
+    if (box1[loc[0]][loc[1]][loc[2]]<.5):
+        #trianglesfinal[r][5]= -1*nx
+        #trianglesfinal[r][6]= -1*ny
+        #trianglesfinal[r][7]= -1*nz #need to deal with this eventually 
+        loc =  np.rint([cx+nx,cy+ny,cz+nz])
+        #print(loc)
+        loc = [int(loc[0]),int(loc[1]),int(loc[2])]
+    gamma12pointfortriangle[r][0],gamma12pointfortriangle[r][1],gamma12pointfortriangle[r][2] = loc[0],loc[1],loc[2]
+    gamma12pointfortriangle[r][3] = gammabox[loc[0]][loc[1]][loc[2]]
+    
+    
+                
+            
+            
+            
+            
+
+
+
+
+
+ 
