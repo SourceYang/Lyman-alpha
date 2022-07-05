@@ -9,6 +9,7 @@ import py21cmfast as p21c
 import numpy as np
 #import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
+import scipy
 
 def contS(box,x,y,size):
     right=x+1
@@ -281,47 +282,66 @@ def findFronts(pairslist,lines,size):
                 st=1
     return trianglelist
 def Periodic(x,y,z,size):
-    if x==size:
-        x=0
-    if y==size:
-        y=0
-    if z==size:
-        z=0
-    if x==-1:
-        x=size-1
-    if y==-1:
-        y=size-1
-    if z==-1:
-        z=size-1
-    return [x,y,z] 
+    return [(x+size)%size, (y+size)%size, (z+size)%size]
+    # if x==size:
+    #     x=0
+    # if y==size:
+    #     y=0
+    # if z==size:
+    #     z=0
+    # if x==-1:
+    #     x=size-1
+    # if y==-1:
+    #     y=size-1
+    # if z==-1:
+    #     z=size-1
+    # return [x,y,z] 
 
-def findGamma12Loc(trianglesfinal,box1,size):
+def findGamma12Loc(trianglesfinal,box1,size,gammabox):
     gamma12pointfortriangleloc=np.zeros((len(trianglesfinal),3),dtype=int)
+    l_step = np.sqrt(3)
     for r in range(len(trianglesfinal)):
         if trianglesfinal[r].area >.00001:
             (cx,cy,cz) = trianglesfinal[r].center
             (nx,ny,nz) =  trianglesfinal[r].nhat
-             
-            loc = np.rint([cx-nx,cy-ny,cz-nz])
+            
+            
+            loc = np.rint([cx-l_step * nx,cy-l_step *ny,cz-l_step *nz])
             #print(loc)
             #print(r)
             loc = [int(loc[0]),int(loc[1]),int(loc[2])]
             loc = Periodic(loc[0],loc[1],loc[2],size)
             #print(loc)
-            if (box1[loc[0]][loc[1]][loc[2]]<.5):
-                trianglesfinal[r].nhat= [-1*nx,-1*ny,-1*nz]
+            if (box1[loc[0]][loc[1]][loc[2]] > .5):
+                trianglesfinal[r].nhat= [-1*nx,-1 *ny,-1*nz]
                 #trianglesfinal[r][6]= -1*ny
-                #trianglesfinal[r][7]= -1*nz #need to deal with this eventually 
-                loc =  np.rint([cx+nx,cy+ny,cz+nz])
+                #trianglesfinal[r][7]= -1*nz #need to deal with this eventually
+
+                loc =  np.rint([cx+l_step *nx,cy+l_step *ny,cz+l_step *nz])
                 loc = Periodic(loc[0],loc[1],loc[2],size)
                 loc = [int(loc[0]),int(loc[1]),int(loc[2])]
+
+            # If gamma12 value is 0, point further along the nhat direction
+            # while (gammabox[loc[0]][loc[1]][loc[2]] == 0):
+            #     trianglesfinal[r].nhat= [-1*nx,-1*ny,-1*nz]
+            #     #trianglesfinal[r][6]= -1*ny
+            #     #trianglesfinal[r][7]= -1*nz #need to deal with this eventually 
+            #     loc =  np.rint([loc[0] - 0.2*trianglesfinal[r].nhat[0], loc[1] - 0.2 * trianglesfinal[r].nhat[1], loc[2] - 0.2 * trianglesfinal[r].nhat[2]])
+            #     loc = Periodic(loc[0],loc[1],loc[2],size)
+            #     loc = [int(loc[0]),int(loc[1]),int(loc[2])]
+
             gamma12pointfortriangleloc[r][0],gamma12pointfortriangleloc[r][1],gamma12pointfortriangleloc[r][2] = loc[0],loc[1],loc[2]
     return gamma12pointfortriangleloc
+
 def findGamma12Val(gamma12loc,trianglesfinal,gammabox):
     gamma12pointfortriangleval=np.zeros((len(trianglesfinal)))
+    gammabox_max_filtered = scipy.ndimage.maximum_filter(gammabox,size=(len(gammabox),len(gammabox),len(gammabox)), mode='wrap')
     for r in range(len(trianglesfinal)):
         if trianglesfinal[r].area >.00001:
             gamma12pointfortriangleval[r] = gammabox[int(gamma12loc[r][0])][int(gamma12loc[r][1])][int(gamma12loc[r][2])]    
+        if gamma12pointfortriangleval[r]==0:
+            gamma12pointfortriangleval[r] = gammabox_max_filtered[int(gamma12loc[r][0])][int(gamma12loc[r][1])][int(gamma12loc[r][2])]
+
     return gamma12pointfortriangleval                              
             
 def CleanUpList(trianglelist):
@@ -513,7 +533,7 @@ class Edgefinder:
         
     #@gamma12loc.setter
     def gamma12loc(self,trianglelist):
-        return findGamma12Loc(trianglelist, self.box, len(self.box[0]))
+        return findGamma12Loc(trianglelist, self.box, len(self.box[0]), self.gammabox)
         #self._gamma12loc = findGamma12Loc(self.fronts,self.box,len(self.box[0]))
     
     #@gamma12val.setter
