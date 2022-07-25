@@ -57,39 +57,27 @@ class I_pI:
         self.read_data()
 
     def read_data(self):
-        with open('./pmu_m.txt') as f:
+        with open('./I_PI.txt') as f:
             f = [x.strip() for x in f if x.strip()]
-            data = [tuple(map(float,x.split())) for x in f[0:]]
+            data = [tuple(map(float,x.split())) for x in f[1:]]
             self.index_U = [x[0] for x in data]
             self.index_nH = [x[1] for x in data]
-            self.mean_p = [x[2] for x in data]
-            self.std_p = [x[3] for x in data]
-            self.mean_n = [x[4] for x in data]
-            self.std_n = [x[5] for x in data]
-
-        with open(r'./b.txt') as f:
-            f = [x.strip() for x in f if x.strip()]
-            data = [tuple(map(float,x.split())) for x in f[0:]]
-            index_U = [x[0] for x in data]
-            index_nH = [x[1] for x in data]
-            self.b0 = [x[2] for x in data]
-            self.b1 = [x[3] for x in data]
-            self.b2 = [x[4] for x in data]
-            self.b3 = [x[5] for x in data]
-            self.b4 = [x[6] for x in data]
-            self.b5 = [x[7] for x in data]
-    
-        with open(r'./c.txt') as f:
-            f = [x.strip() for x in f if x.strip()]
-            data = [tuple(map(float,x.split())) for x in f[0:]]
-            index_U = [x[0] for x in data]
-            index_nH = [x[1] for x in data]
-            self.c2 = [x[2] for x in data]
-            self.c3 = [x[3] for x in data]
-            self.c4 = [x[4] for x in data]
-            self.c5 = [x[5] for x in data]
-            self.c6 = [x[6] for x in data]
-            self.c7 = [x[7] for x in data]
+            self.I_sim = [x[2] for x in data]
+            self.pI_sim = [x[3] for x in data]
+            self.p_mu_sim = [x[4] for x in data]
+            self.mean_n = [x[5] for x in data]
+            self.b0 = [x[6] for x in data]
+            self.b1 = [x[7] for x in data]
+            self.b2 = [x[8] for x in data]
+            self.b3 = [x[9] for x in data]
+            self.b4 = [x[10] for x in data]
+            self.b5 = [x[11] for x in data]
+            self.c2 = [x[12] for x in data]
+            self.c3 = [x[13] for x in data]
+            self.c4 = [x[14] for x in data]
+            self.c5 = [x[15] for x in data]
+            self.c6 = [x[16] for x in data]
+            self.c7 = [x[17] for x in data]
 
         for i in range(len(self.index_U)):
             if self.index_U[i] == 11:
