@@ -292,7 +292,7 @@ class I_pI:
         
         vlya_z = vlya / (1 + self.z)
         
-        return h * vlya_z * n_fit * pmu_fit / (2 * np.pi  * (1 + self.z)**3)
+        return h * vlya_z * n_fit * pmu_fit /(2 * np.pi * np.abs(np.cos(self.theta)) * (1 + self.z)**3)
     
     def pI(self):
         c2_fit = self.fit_2d(self.Ui, self.nHi, self.c2)
@@ -308,7 +308,7 @@ class I_pI:
         
         vlya_z = vlya / (1 + self.z)
         
-        return h * vlya_z * n_fit * pImu_fit / (2 * np.pi * (1 + self.z)**3)
+        return h * vlya_z * n_fit * pImu_fit / (2 * np.pi * np.abs(np.cos(self.theta)) * (1 + self.z)**3)
 
 
 """
