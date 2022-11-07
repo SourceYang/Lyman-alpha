@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Feb 16 11:01:36 2022
+
+@author: Emily
+"""
 import py21cmfast as p21c
 import numpy as np
 #import matplotlib.pyplot as plt
@@ -44,6 +51,9 @@ def TwoDContours(box1):
     size=len(box1[0])
     deltax=[0,1,2,3,4]
     deltay=[0,1,-1,2,-2,3,-3,4,-4]
+    
+    possible = [[0, 1], [1, 1], [1, 0], [1, -1]]
+    
     zlists2 = []
     xlist2=[]
     ylist2=[]
@@ -66,34 +76,34 @@ def TwoDContours(box1):
                      proc = contS(smoothed,x,y,size)
                      if proc==True:
                          if (count<2):
-                             for a in range(0,2,1):
-                                 deltaX = deltax[a]
-                                 for b in range(0,3,1):
-                                     deltaY= deltay[b]
-                                     if deltaX+np.abs(deltaY)<5 and deltaX+np.abs(deltaY)>0 and x+deltaX<101 and y+deltaY<101:
-                                         xcheck=x+deltaX
-                                         ycheck = y+deltaY
-                                         if x+deltaX==size:
-                                             xcheck= 0
-                                         if y+deltaY==size:
-                                             ycheck= 0
-                                         frac2 = smoothed[xcheck][ycheck]
-                                         if frac2>.5:
-                                             ad = contS(smoothed,x+deltaX,y+deltaY,size)
-                                             if ad==True:
-                                                 xylists2.append((x,y,z,x+deltaX,y+deltaY))
-                                                 xylists3.append((x,y,z,x+deltaX,y+deltaY))
-                                                 xlist2.append(x)
-                                                 xlist2.append(x+deltaX)
-                                                 xlist2.append(None)
-                                                 ylist2.append(y)
-                                                 ylist2.append(y+deltaY)
-                                                 ylist2.append(None)
-                                                 zlists2.append(z)
-                                                 zlists2.append(z)
-                                                 zlists2.append(None)
-                                                 count +=1
-                                                 countz+=1
+                             for a in range(0,4,1):
+                                 deltaX = possible[a][0]
+                                 deltaY = possible[a][1]
+                                 
+                                 if deltaX+np.abs(deltaY)<5 and deltaX+np.abs(deltaY)>0 and x+deltaX<size+1 and y+deltaY<size+1:
+                                     xcheck=x+deltaX
+                                     ycheck = y+deltaY
+                                     if x+deltaX==size:
+                                         xcheck= 0
+                                     if y+deltaY==size:
+                                         ycheck= 0
+                                     frac2 = smoothed[xcheck][ycheck]
+                                     if frac2>.5:
+                                         ad = contS(smoothed,x+deltaX,y+deltaY,size)
+                                         if ad==True:
+                                             xylists2.append((x,y,z,x+deltaX,y+deltaY))
+                                             xylists3.append((x,y,z,x+deltaX,y+deltaY))
+                                             xlist2.append(x)
+                                             xlist2.append(x+deltaX)
+                                             xlist2.append(None)
+                                             ylist2.append(y)
+                                             ylist2.append(y+deltaY)
+                                             ylist2.append(None)
+                                             zlists2.append(z)
+                                             zlists2.append(z)
+                                             zlists2.append(None)
+                                             count +=1
+                                             countz+=1
         countedz.append(countz)
        # uni_xy,uni_index = np.unique(xylists2,axis=0,return_index=True)
         #print(uni_index)
@@ -369,6 +379,7 @@ def Periodic(x,y,z,size):
 def findGamma12Loc(trianglesfinal,box1,size,gammabox):
     gamma12pointfortriangleloc=np.zeros((len(trianglesfinal),3),dtype=int)
     l_step = np.sqrt(3)
+    numflip = 0
     for r in range(len(trianglesfinal)):
         if trianglesfinal[r].area >.00001:
             (cx,cy,cz) = trianglesfinal[r].center
@@ -383,6 +394,8 @@ def findGamma12Loc(trianglesfinal,box1,size,gammabox):
             #print(loc)
             if (box1[loc[0]][loc[1]][loc[2]] > .5):
                 trianglesfinal[r].nhat= [-1*nx,-1 *ny,-1*nz]
+                numflip+=1 
+                
                 #trianglesfinal[r][6]= -1*ny
                 #trianglesfinal[r][7]= -1*nz #need to deal with this eventually
 
@@ -400,7 +413,7 @@ def findGamma12Loc(trianglesfinal,box1,size,gammabox):
             #     loc = [int(loc[0]),int(loc[1]),int(loc[2])]
 
             gamma12pointfortriangleloc[r][0],gamma12pointfortriangleloc[r][1],gamma12pointfortriangleloc[r][2] = loc[0],loc[1],loc[2]
-    return gamma12pointfortriangleloc
+    return gamma12pointfortriangleloc, numflip
 
 def findGamma12Val(gamma12loc,trianglesfinal,gammabox):
     gamma12pointfortriangleval=np.zeros((len(trianglesfinal)))
@@ -455,7 +468,10 @@ class triangle:
         b= np.sqrt((x3-x2)**2+(y3-y2)**2+(z3-z2)**2)
         c= np.sqrt((x1-x3)**2+(y1-y3)**2+(z1-z3)**2)
         s = (a+b+c)/2.0
-        area1 = np.sqrt(s*(s-a)*(s-b)*(s-c))
+        inside = s*(s-a)*(s-b)*(s-c)
+        if inside<0:
+            inside=0
+        area1 = np.sqrt(inside)
         return area1
     #@staticmethod
     def center(x1,y1,z1,x2,y2,z2,x3,y3,z3):
@@ -472,8 +488,8 @@ class triangle:
         area1 = triangle.area(x1,y1,z1,x2,y2,z2,x3,y3,z3)
         if area1==0.0:
             nhat = [0,0,0]
-        if np.isnan(nhat[0])==True:
-            print(nfull)
+        #if np.isnan(nhat[0])==True:
+        #    print(nfull)
         return nhat
             
         
@@ -576,6 +592,7 @@ class Edgefinder:
         
     #@gamma12loc.setter
     def gamma12loc(self,trianglelist):
+        print(len(self.box))
         return findGamma12Loc(trianglelist, self.box, len(self.box[0]), self.gammabox)
         #self._gamma12loc = findGamma12Loc(self.fronts,self.box,len(self.box[0]))
     
@@ -597,4 +614,4 @@ gamma12values = test.gamma12val(fronts,gamma12locations)
            
        
 """       
- 
+    
