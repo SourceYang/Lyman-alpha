@@ -1,6 +1,6 @@
 This is the main repository for Yuanyuan’s summer 2020 research project focusing on models of polarized Lyman alpha emission from reionization.
 
-Before getting start, please use Chenxiao’s code (https://github.com/frankelzeng/reionization) $\textbf{gif\_190127\_2.c}$ to set up the background temperature by
+Before getting start, please use Chenxiao’s code (https://github.com/frankelzeng/reionization) gif_190127_2.c to set up the background temperature by
 ```
 cc -std=c99 -Wall -o gif gif_190127_2.c
 ```
