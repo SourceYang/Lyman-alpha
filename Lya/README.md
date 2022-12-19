@@ -22,3 +22,10 @@ gcc Lya.c -o lya -lm
 The corresponding inputs are the the source balckbody temperature T in K, front velocity U in cm/s, hydrogen density y1H1 in #/cm^-3, background file name (the output from gif_190127_2.c), number of photons n_photon, a random seed and the output file name
 
 To test, you can use the default T = 5e4 K, the default U = 5e8 cm/s and the default y1H1 = 1.37e-4 cm^-3, if you want to change any of the parameter, please change the corresponding parameter when set up the background temperature as well
+
+
+In order to calculate the intensity and polarized intensity of a front based on the output files above, you will need to use the LyaIntensityandPolIntensityCalc.ipynb file. 
+
+This file requires inputting a directory for the photon output files. Then, by producing a best fit model for p(\mu) and polarization*p(\mu) and calculating the lyman alpha production rate, the notebook calculates the intensity and polarized intensity of a front. 
+
+The file also includes a function to calculate the uncertainty in the intensity and polarized intensity measurements through the bootstrap resampling method. 
