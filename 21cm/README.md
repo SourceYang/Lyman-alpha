@@ -6,4 +6,6 @@ EdgeFinding3d072622.py takes the $\textbf{21cmFAST}$ simulation and breaks the f
 
 Also necessary for a power spectrum is an interpolation scheme ...
 
+HL: the functions translating fronts characteristic quantities velociy, temperature, Gamma12 to the intensities are in the python profile intensity_tool.py. The calculations of intensity power spectra can be achived by functions in lya_pol_box.py.
+
 Then need to do calculation of power spectrum ...
